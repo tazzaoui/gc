@@ -5,6 +5,9 @@ EXEC=gc-test
 gc-test: gc.o main.o
 	$(CC) $(CFLAGS) main.o gc.o -o gc-test
 
+check: gc-test
+	valgrind --leak-check=full ./gc-test
+
 main.o: main.c
 	$(CC) $(CFLAGS) -c main.c -o main.o
 
