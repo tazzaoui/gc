@@ -16,11 +16,10 @@ void gc_init(void) {
 }
 
 void gc_destroy(void) {
-  obj_t *tmp, *ptr = stack->l_head;
+  obj_t *tmp, *ptr = stack->g_head;
   while (ptr != NULL) {
     tmp = ptr;
     ptr = ptr->next;
-    free(tmp->addr);
     free(tmp);
   }
 
@@ -99,6 +98,7 @@ void __sweep() {
       temp = *obj;
       *obj = (*obj)->next;
       stack->size -= temp->size;
+      free(temp->addr);
       free(temp);
       --(stack->count);
     } else {
@@ -111,20 +111,22 @@ void __sweep() {
 void __remove_local(size_t tag) {
   obj_t *tmp, *obj = stack->l_head;
 
-  if (obj && obj->tag == tag) {
+  if (obj != NULL && obj->tag == tag) {
     tmp = obj;
     stack->l_head = obj->next;
+    if (tmp->addr) free(tmp->addr);
     free(tmp);
     return;
   }
 
-  while (obj && obj->tag != tag) {
+  while (obj != NULL && obj->tag != tag) {
     tmp = obj;
     obj = obj->next;
   }
 
   if (obj == NULL) return;
   tmp->next = obj->next;
+  free(obj->addr);
   free(obj);
 }
 
@@ -149,7 +151,7 @@ void __dump_gc() {
     ptr = ptr->next;
   }
   printf("Local List:\n");
-  ptr = stack->g_head;
+  ptr = stack->l_head;
   while (ptr != NULL) {
     printf("Reachable = %d, Addr = %p, Size = %zu, Tag = %zu, Marked = %d\n",
            __is_reachable(ptr), ptr->addr, ptr->size, ptr->tag, ptr->marked);
