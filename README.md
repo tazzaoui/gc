@@ -32,7 +32,7 @@ Elapsed time: 0.000014s
 ```
 
 ## Testing with Valgrind
-1. Use the `Makefile` to invoke valgrind in order to check for memory leaks
+1. Use the `Makefile` to invoke valgrind in order to check for memory leaks: there should be none
 ```
 $ make check
 ==14060==
