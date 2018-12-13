@@ -16,6 +16,7 @@ void gc_init(void) {
 }
 
 void gc_destroy(void) {
+  gc();
   obj_t *tmp, *ptr = stack->g_head;
   while (ptr != NULL) {
     tmp = ptr;
@@ -56,7 +57,7 @@ obj_t *gc_malloc(size_t size) {
   l_obj->marked = 0;
   l_obj->tag = stack->count;
 
-  // Insert new obj at the head of the local list
+  // Insert new obj at the head of both lists
   g_obj = __deep_cpy(l_obj);
   l_obj->next = stack->l_head;
   g_obj->next = stack->g_head;
@@ -70,24 +71,21 @@ obj_t *gc_malloc(size_t size) {
   return stack->l_head;
 }
 
+int __is_reachable(obj_t *obj) {
+  obj_t *ptr = stack->l_head;
+  while (ptr != NULL) {
+    if (ptr->addr == obj->addr) return 1;
+    ptr = ptr->next;
+  }
+  return 0;
+}
+
 void __mark() {
   obj_t *obj = stack->g_head;
   while (obj != NULL) {
     if (__is_reachable(obj)) obj->marked = 1;
     obj = obj->next;
   }
-}
-
-obj_t *__deep_cpy(obj_t *obj) {
-  obj_t *cpy = malloc(sizeof(obj_t));
-  if (cpy) {
-    cpy->addr = obj->addr;
-    cpy->size = obj->size;
-    cpy->marked = obj->marked;
-    cpy->tag = obj->tag;
-    cpy->next = NULL;
-  }
-  return cpy;
 }
 
 void __sweep() {
@@ -106,6 +104,18 @@ void __sweep() {
       obj = &((*obj)->next);
     }
   }
+}
+
+obj_t *__deep_cpy(obj_t *obj) {
+  obj_t *cpy = malloc(sizeof(obj_t));
+  if (cpy) {
+    cpy->addr = obj->addr;
+    cpy->size = obj->size;
+    cpy->marked = obj->marked;
+    cpy->tag = obj->tag;
+    cpy->next = NULL;
+  }
+  return cpy;
 }
 
 void __remove_local(size_t tag) {
@@ -128,15 +138,6 @@ void __remove_local(size_t tag) {
   tmp->next = obj->next;
   free(obj->addr);
   free(obj);
-}
-
-int __is_reachable(obj_t *obj) {
-  obj_t *ptr = stack->l_head;
-  while (ptr != NULL) {
-    if (ptr->addr == obj->addr) return 1;
-    ptr = ptr->next;
-  }
-  return 0;
 }
 
 void __dump_gc() {
