@@ -4,7 +4,7 @@
 ## Basic Algorithm
 
 1. Initialize all objects with their marked bit cleared
-2. First pass: Traverse and mark all objects reachable from the root set and mark every 
+2. First pass: Traverse and mark all objects reachable from the root set
 3. Second pass: Traverse the global list and remove all objects that are not marked
 
 ## To build
