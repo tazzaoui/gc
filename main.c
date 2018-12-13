@@ -4,6 +4,7 @@
 stack_t *stack = NULL;
 
 int main(int argc, char *argv) {
+  // Init the garbage collector
   gc_init();
 
   // Alocate two ints
@@ -18,18 +19,17 @@ int main(int argc, char *argv) {
   int result = *((int *)obj1->addr) + *((int *)obj2->addr);
   printf("%d\n", result);
 
-  printf("Before mem leak\n");
+  // Dump internals for debugging
   __dump_gc();
 
-  // These should no longer be reachable
+  // MEMORY LEAK! These should no longer be reachable
   obj1->addr = NULL;
   obj2->addr = NULL;
 
-  printf("After mem leak\n");
-
+  // Explicitly mark and sweep them away for demonstration
   gc();
-  __dump_gc();
 
+  // Destroy the garbage collector
   gc_destroy();
   return 0;
 }
